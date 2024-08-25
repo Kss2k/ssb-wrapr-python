@@ -21,7 +21,7 @@ def convertR2py(x: Any, renv: Renv) -> Any:
             return convert_s4(x, renv=renv)
         case vc.DataFrame():
             return convert_pandas(x)
-        case vc.Vector():
+        case vc.Vector() | vc.Matrix | vc.Array:
             return convert_numpy(x)
         case list():
             return convert_list(x, renv=renv)
@@ -36,6 +36,7 @@ def convertR2py(x: Any, renv: Renv) -> Any:
         case np.ndarray():
             if not is_valid_numpy(x):
                 return attempt_pandas_conversion(x)
+            return filter_numpy(x)
         case _:
             return generic_conversion(x)
         
@@ -57,15 +58,30 @@ def convert_dict(X: Dict | OrderedDict, renv: Renv) -> Any:
 
 
 def convert_numpy(x: vc.Vector | NDArray) -> NDArray:
-    match x:
-        case vc.BoolVector():
+    match x: # this should be expanded upon
+        case vc.BoolVector() | vc.BoolArray | vc.BoolMatrix:
             dtype = "bool"
+        case vc.FloatVector() | vc.FloatArray | vc.FloatMatrix:
+            dtype = "float"
+        case vc.IntVector | vc.IntArray | vc.IntMatrix:
+            dtype = "int"
         case _:
             dtype = None
-    out = np.asarray(x, dtype=dtype)
-    if not out.shape:
-        return out[np.newaxis][0]
-    return out
+
+    y = np.asarray(x, dtype=dtype)
+    return filter_numpy(y)
+
+
+def filter_numpy(x: NDArray) -> NDArray | int | str | float | bool:
+    # sometimes a numpy array will have one element with shape (,)
+    # this should be (1,)
+    y = x[np.newaxis][0] if not x.shape else x
+    # if shape is (1,) we should just return as int | str | float | bool
+    # R doesn't have these types, only vectors/arrays, this will probably
+    # give unexpected results for users who are unfamiliar with R, so
+    # we return the first element instead
+    y = y[0] if y.shape == (1,) else y
+    return y
 
 
 def is_valid_numpy(x: NDArray) -> bool:

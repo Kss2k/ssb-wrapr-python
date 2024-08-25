@@ -37,6 +37,8 @@ def fetch_data(dataset: str, module: rpkg.Package) -> pd.DataFrame | None:
             return rpkg.data(module).fetch(dataset)[dataset]
         except KeyError:
             return None
+        except:
+            return None
 
 
 def attach_to_namespace(namespace: Renv, name: str, attr: Any) -> None:
