@@ -1,5 +1,7 @@
 tests/__pycache__
 wrapr/__pycache__
+tests/.RData
+tests/.Rhistory
 *.pyo
 *.pyc
 __pycache__

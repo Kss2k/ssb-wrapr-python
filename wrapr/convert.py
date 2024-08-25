@@ -44,12 +44,9 @@ def convertR2py(x: Any, renv: Renv) -> Any:
         
 
 def convert_list(X: List | Tuple, renv: Renv) -> Any:
-    try:
-        out = pd.DataFrame(X)
-    except Error:
-        out = [convertR2py(x, renv=renv) for x in X]
-        if isinstance(X, tuple):
-            out = tuple(out)
+    out = [convertR2py(x, renv=renv) for x in X]
+    if isinstance(X, tuple):
+        out = tuple(out)
     return out
         
                 
@@ -58,8 +55,8 @@ def convert_dict(X: Dict | OrderedDict, renv: Renv,
     try:
         # this needs to be improved considering named vectors
         if is_RDict and np.all(np.array(X.keys()) == None):
-            Y = renv.Renvironments["base"].unlist(renv.Renvironments["base"].unname(X))
-            return convertR2py(np.array(Y), renv=renv)
+            Y = list(zip(*X.items()))[1]
+            X = convertR2py(Y, renv=renv)
         elif is_RDict:
             X = dict(X)
 
