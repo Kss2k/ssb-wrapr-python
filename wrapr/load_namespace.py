@@ -10,7 +10,7 @@ def load_base_envs() -> Dict[str, rpkg.InstalledSTPackage| rpkg.InstalledPackage
     rbase = try_load_namespace("base")
     rMatrix = try_load_namespace("Matrix")
     rutils = try_load_namespace("utils")
-    return {"rbase": rbase, "rMatrix": rMatrix, "rutils": rutils}
+    return {"base": rbase, "Matrix": rMatrix, "utils": rutils}
 
 
 def try_load_namespace(namespace: str):

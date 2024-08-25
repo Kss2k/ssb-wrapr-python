@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 from rpy2.robjects import pandas2ri, numpy2ri
-from rpy2.robjects.help import HelpNotFoundError
+from rpy2.robjects.help import HelpNotFoundError, Package
 from numpy.typing import NDArray
 from typing import Any, Callable, Dict, List, Set, Tuple
 
@@ -47,9 +47,12 @@ def attach_to_namespace(namespace: Renv, name: str, attr: Any) -> None:
     setattr(namespace, name, attr)
 
 
-def func_factory(env_name: str) -> Renv:
-    module: rpkg.Package = try_load_namespace(env_name)
-    namespace: Renv = Renv()
+def func_factory(env_name: str,
+                 module: None | rpkg.Package = None,
+                 namespace: None | Renv = None) -> Renv:
+    if module is None or namespace is None:
+        module = try_load_namespace(env_name)
+        namespace = Renv()
     funcs, datasets = get_assets(env_name, module=module)
 
     for f in funcs:
@@ -62,6 +65,13 @@ def func_factory(env_name: str) -> Renv:
 
     return namespace
 
+
+def attach_base(renv: Renv) -> None:
+    for pkg in renv.Renvironments:
+        func_factory(env_name = pkg,
+                     module = renv.Renvironments[pkg],
+                     namespace = renv)
+    
         
 def get_assets(env_name: str, module: rpkg.Package) -> Tuple[Set[str], Set[str]]:
     rcode: str = f"library({env_name}); ls(\"package:{env_name}\")"

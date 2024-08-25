@@ -17,18 +17,20 @@ from .renv import Renv
 
 def convertR2py(x: Any, renv: Renv) -> Any:
     match x:
+        case str() | int() | bool() | float():
+            return x
         case ro.methods.RS4():
             return convert_s4(x, renv=renv)
         case vc.DataFrame():
             return convert_pandas(x)
-        case vc.Vector() | vc.Matrix | vc.Array:
+        case vc.Vector() | vc.Matrix() | vc.Array():
             return convert_numpy(x)
         case list():
             return convert_list(x, renv=renv)
         case tuple(): 
             return convert_list(x, renv=renv)
         case rcnt.OrdDict():
-            return convert_dict(dict(x), renv=renv)
+            return convert_dict(x, renv=renv, is_RDict=True)
         case dict():
             return convert_dict(x, renv=renv)
         case pd.DataFrame():
@@ -51,10 +53,20 @@ def convert_list(X: List | Tuple, renv: Renv) -> Any:
     return out
         
                 
-def convert_dict(X: Dict | OrderedDict, renv: Renv) -> Any:
-    for key in X:
-        X[key] = convertR2py(X[key], renv=renv)
-    return X
+def convert_dict(X: Dict | OrderedDict, renv: Renv, 
+                 is_RDict: bool = False) -> Any:
+    try:
+        # this needs to be improved considering named vectors
+        if is_RDict and np.all(np.array(X.keys()) == None):
+            Y = renv.Renvironments["base"].unlist(renv.Renvironments["base"].unname(X))
+            return convertR2py(np.array(Y), renv=renv)
+        elif is_RDict:
+            X = dict(X)
+
+        for key in X:
+            X[key] = convertR2py(X[key], renv=renv)
+    finally:
+        return X
 
 
 def convert_numpy(x: vc.Vector | NDArray) -> NDArray:
