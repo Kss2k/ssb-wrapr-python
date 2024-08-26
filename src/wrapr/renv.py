@@ -61,8 +61,7 @@ class Renv:
             capture.reset_r_output()
             return getattr(self.__base_lib__, name)
         else:
-            raise ValueError("Cannot index asset, IMPLEMENT SEARCHING IN BASE ENV")
-
+            raise ValueError("Cannot index asset, IMPLEMENT SEARCHING IN SUB/BASE ENVIRONMENTS")
 
     def __library__(self, name: str) -> None: # attach library to module
         self.__Renvironments__[name] = try_load_namespace(name, verbose=True)
