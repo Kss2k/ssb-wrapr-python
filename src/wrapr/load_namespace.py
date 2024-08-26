@@ -1,5 +1,4 @@
 import warnings
-import rpy2
 import rpy2.robjects.packages as rpkg
 import rpy2.robjects as ro
 
@@ -7,7 +6,7 @@ from typing import Dict
 from .utils import pinfo, ROutputCapture
 
 
-def load_base_envs() -> Dict[str, rpkg.InstalledSTPackage| rpkg.InstalledPackage]:
+def load_base_envs() -> dict[str, rpkg.InstalledSTPackage| rpkg.InstalledPackage]:
     # set options for global environment
     rbase = try_load_namespace("base", verbose=False)
     rMatrix = try_load_namespace("Matrix", verbose=False)

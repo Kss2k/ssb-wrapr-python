@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "ssb-wrapr-python"
+version = "0.0.1"
+description = "Use R-functions natively in python"
+authors = ["Kjell S Slupphaug <pph@ssb.no>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "wrapr", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+pandas = ">=2.2.0"
+rpy2 = "^3.5.16"
+termcolor = "^2.4.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=5.2"
+pytest-cov = ">=2.8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

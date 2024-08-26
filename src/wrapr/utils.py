@@ -1,5 +1,4 @@
 import termcolor as tc
-import rpy2.robjects as ro
 import rpy2.rinterface_lib.callbacks
 
 
