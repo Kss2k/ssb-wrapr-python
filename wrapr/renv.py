@@ -1,19 +1,18 @@
-import rpy2.robjects.packages as rpkg
-import rpy2.robjects as ro
 import pandas as pd
 import numpy as np
 
-from rpy2.robjects import pandas2ri, numpy2ri
+import rpy2.robjects as ro
+import rpy2.robjects.vectors as vc
 import rpy2.rlike.container as rcnt
-from rpy2.robjects.help import HelpNotFoundError
+import rpy2.robjects.packages as rpkg
+
 from numpy.typing import NDArray
 from typing import Any, Callable, Dict, List, OrderedDict, Set, Tuple
+from copy import Error
+from rpy2.robjects import pandas2ri, numpy2ri
 
 from .load_namespace import load_base_envs, try_load_namespace
 from .utils import ROutputCapture, pinfo
-import rpy2.robjects.vectors as vc
-
-from copy import Error
 from .nputils import np_collapse
 
 
@@ -63,6 +62,17 @@ class Renv:
             return getattr(self.__base_lib__, name)
         else:
             raise ValueError("Cannot index asset, IMPLEMENT SEARCHING IN BASE ENV")
+    
+    def __library__(self, name: str) -> None: # attach library to module
+        self.__Renvironments__[name] = try_load_namespace(name, verbose=True)
+    
+    def __function__(self, name: str, expr: str) -> None:
+        rfunc: Callable | Any = ro.r(expr, invisible=True,
+                                     print_r_warnings=False)
+        pyfunc: Callable = base_func(rfunc, renv=self)
+
+        self.__attach__(name=name, attr=pyfunc)
+
 
 
 def base_func(func: Callable | Any, renv: Renv) -> Callable | Any: # should be a Callable, but may f-up
@@ -78,7 +88,7 @@ def base_func(func: Callable | Any, renv: Renv) -> Callable | Any: # should be a
 
     try:
         wrap.__doc__ = func.__doc__
-    except HelpNotFoundError: 
+    except ro.HelpNotFoundError: 
         pass
     return wrap
 
