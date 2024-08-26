@@ -55,11 +55,11 @@ class Renv:
                                       renv=self)
             self.__attach__(name=name, attr=fun)
             capture.reset_r_output()
-            return getattr(self.__base_lib__, name)
+            return getattr(self, name)
         elif name in self.__Rdatasets__:
             self.__attach__(name=name, attr=fetch_data(name, self.__base_lib__))
             capture.reset_r_output()
-            return getattr(self.__base_lib__, name)
+            return getattr(self, name)
         else:
             raise ValueError("Cannot index asset, IMPLEMENT SEARCHING IN SUB/BASE ENVIRONMENTS")
 
