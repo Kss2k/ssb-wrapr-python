@@ -1,6 +1,3 @@
-import rpy2.robjects as ro
-
-from typing import Tuple
 from wrapr.load_namespace import load_base_envs
 
 

@@ -1,15 +1,13 @@
-import rpy2
 import rpy2.robjects.packages as rpkg
 import rpy2.robjects as ro
 import pandas as pd
 import numpy as np
 
 from rpy2.robjects import pandas2ri, numpy2ri
-from rpy2.robjects.help import HelpNotFoundError, Package
-from numpy.typing import NDArray
-from typing import Any, Callable, Dict, List, Set, Tuple
+from rpy2.robjects.help import HelpNotFoundError
+from typing import Any, Callable, Set, Tuple
 
-from .convert import convert_numpy, convertR2py
+from .convert import convertR2py
 from .renv import Renv
 from .load_namespace import try_load_namespace
 from .utils import pinfo

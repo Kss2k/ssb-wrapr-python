@@ -2,7 +2,7 @@ import numpy as np
 
 from numpy.typing import NDArray
 from rpy2.rlike.container import Any
-from typing import Callable, Dict
+from typing import Callable
 
 from .renv import Renv
 

@@ -6,9 +6,9 @@ import rpy2.robjects.vectors as vc
 import rpy2.rlike.container as rcnt
 
 from copy import Error
-from rpy2.robjects import DataFrame, pandas2ri, numpy2ri
+from rpy2.robjects import pandas2ri
 from numpy.typing import NDArray
-from typing import Any, Callable, Dict, List, OrderedDict, Set, Tuple
+from typing import Any, OrderedDict
 
 from .nputils import np_collapse
 from .rutils import as_matrix, get_rclass
@@ -43,14 +43,14 @@ def convertR2py(x: Any, renv: Renv) -> Any:
             return generic_conversion(x)
         
 
-def convert_list(X: List | Tuple, renv: Renv) -> Any:
+def convert_list(X: list | tuple, renv: Renv) -> Any:
     out = [convertR2py(x, renv=renv) for x in X]
     if isinstance(X, tuple):
         out = tuple(out)
     return out
         
                 
-def convert_dict(X: Dict | OrderedDict, renv: Renv, 
+def convert_dict(X: dict | OrderedDict, renv: Renv, 
                  is_RDict: bool = False) -> Any:
     try:
         # this needs to be improved considering named vectors
