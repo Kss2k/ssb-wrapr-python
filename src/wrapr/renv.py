@@ -62,8 +62,8 @@ class Renv:
             return getattr(self.__base_lib__, name)
         else:
             raise ValueError("Cannot index asset, IMPLEMENT SEARCHING IN BASE ENV")
-<<<<<<< HEAD
-    
+
+
     def __library__(self, name: str) -> None: # attach library to module
         self.__Renvironments__[name] = try_load_namespace(name, verbose=True)
     
@@ -73,8 +73,6 @@ class Renv:
         pyfunc: Callable = base_func(rfunc, renv=self)
 
         self.__attach__(name=name, attr=pyfunc)
-=======
->>>>>>> 316bba3 (lazy index new assets)
 
 
 def base_func(func: Callable | Any, renv: Renv) -> Callable | Any: # should be a Callable, but may f-up
@@ -90,7 +88,7 @@ def base_func(func: Callable | Any, renv: Renv) -> Callable | Any: # should be a
 
     try:
         wrap.__doc__ = func.__doc__
-    except HelpNotFoundError: 
+    except ro.HelpNotFoundError: 
         pass
     return wrap
 
