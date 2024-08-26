@@ -12,6 +12,7 @@ python = ">=3.10"
 pandas = ">=2.2.0"
 rpy2 = "^3.5.16"
 termcolor = "^2.4.0"
+numpy = "<2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=5.2"
