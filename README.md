@@ -1,13 +1,18 @@
 # `ssb-wrapr-python`
 ## To do:
     1. Port all test files for SSB-GaussSuppression, and SSBtools
-    2. Better conversion handling
+    2. Better conversion handling for output
         - Convert ordered dictionaries (which are vectors) to numpy arrays
         - Convert ordered dictionaries (which are lists) to dictionaries
         - Convert lists (which are vectors) to vectors
         - Convert lists (which are lists) to lists
-    3. Better warning handling (this will likely be tricky)
-    4. Create function for writing R-source code, which can be used as 
-        native python code
-    5. Maybe not load all functions by default? The indexing takes a while if
-        the repo is very large... Maybe just find a way to load it faster?
+        - S4 CLASSES ARE TRICKY!
+    3. Better conversion handling for input!
+        - S4 CLASSES ARE TRICKY
+    4. Refactor modules, into seperate files 
+        - Convert shoudld be split into three (maybe four) sub-modules/files
+            1. rutils
+            2. convert_in
+            3. convert_out
+           (4.) py->r->py wrapping function factory
+    5. Better warning handling (this will likely be tricky)

@@ -33,6 +33,7 @@ d = pd.DataFrame({
 mm = SSBtools.ModelMatrix(d, formula = "~ v1 - 1", 
                           crossTable = True, sparse = True)
 
+
 def test_Unweighted_dominance():
     p1 = GaussSuppression.DominanceRule(
             d,
@@ -65,6 +66,7 @@ def test_Unweighted_dominance():
     assert np.all(np.logical_and(p1 == p2["primary"], 
                                  p1 == p3["primary"]))
 
+
 def test_Default_weighted_dominance():
     p = GaussSuppression.DominanceRule(
       d,
@@ -78,6 +80,7 @@ def test_Default_weighted_dominance():
       
     assert all(np.concatenate((np.array(True)[np.newaxis], 
                            np.repeat([False], 6))) == p["primary"])
+
 
 def test_tauargus_dominance():
     p = GaussSuppression.DominanceRule(

@@ -8,5 +8,7 @@ def np_contains(x: NDArray, pattern = Any):
 
 
 def np_collapse(x: NDArray[str], sep = "_") -> str:
+    if not x.shape:
+        x = x[np.newaxis]
     return sep.join(x)
 
