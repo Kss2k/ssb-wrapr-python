@@ -12,6 +12,9 @@ from copy import Error
 from rpy2.robjects import pandas2ri, numpy2ri
 
 from .nputils import np_collapse
+from .lazy_rexpr import lazily, lazy_wrap
+from .rutils import rcall
+
 
 def convertR2py(x: Any) -> Any:
     match x:
@@ -153,20 +156,30 @@ def convert_pysparsematrix(x: scipy.sparse.coo_array | scipy.sparse.coo_matrix):
         return x
 
     return y
+    
+
+def clean_args(args: List[Any], kwargs: Dict[str, Any]) -> None:
+    for i, x in enumerate(args):
+        args[i] = convert_py2R(x) 
+    for k, v in kwargs.items():
+        kwargs[k] = convert_py2R(v)
 
 
 # r-utils ----------------------------------------------------------------------
-def wrap_rfunc(func: Callable | Any) -> Callable | Any: # should be a Callable, but may f-up
+def wrap_rfunc(func: Callable | Any, name: str) -> Callable | Any: # should be a Callable, but may f-up
     if not callable(func):
         return None
     
     def wrap(*args, **kwargs):
-        clean_args: Tuple[Any] = tuple([convert_py2R(x) for x in args])
-        clean_kwargs: Dict[str, Any] = {k:convert_py2R(v) for k, v in kwargs.items()}
-
+        args = list(args) if args is not None else args
+        clean_args(args=args, kwargs=kwargs)
+        
+        lazyfunc = lazy_wrap(args=args, kwargs=kwargs, func=func,
+                             func_name=name)
+        # rfunc = lazy_wrap(*clean_args, **clean_kwargs)
         with (ro.default_converter + pandas2ri.converter + 
               numpy2ri.converter).context():
-            result: Any = func(*clean_args, **clean_kwargs)
+            result: Any = lazyfunc(*args, **kwargs)
 
         return convertR2py(result)
 
@@ -177,15 +190,11 @@ def wrap_rfunc(func: Callable | Any) -> Callable | Any: # should be a Callable, 
     return wrap
 
 
-def rcall(expr: str) -> Any:
-    return ro.r(expr, print_r_warnings=False, invisible=True)
-
-
-def rfunc(expr: str) -> Callable | Any:
+def rfunc(name: str) -> Callable | Any:
     # Function for getting r-function from global environment
     # BEWARE: THIS FUNCTION WILL TRY TO CONVERT ARGS GOING BOTH IN AND OUT!
     # This function must not be used in Rpy-in functions
-    return wrap_rfunc(rcall(expr))
+    return wrap_rfunc(rcall(name), name=name)
 
 
 def get_rclass(x: Any) -> NDArray[np.unicode_] | None:

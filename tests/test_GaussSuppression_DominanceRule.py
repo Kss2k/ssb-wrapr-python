@@ -33,6 +33,8 @@ d = pd.DataFrame({
 mm = SSBtools.ModelMatrix(d, formula = "~ v1 - 1", 
                           crossTable = True, sparse = True)
 
+mm2 = SSBtools.ModelMatrix(d, formula = "~ v1 - 1", 
+                           crossTable = True, sparse = False)
 
 def test_Unweighted_dominance():
     p1 = GaussSuppression.DominanceRule(

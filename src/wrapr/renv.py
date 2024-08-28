@@ -52,7 +52,7 @@ class Renv:
         capture.capture_r_output()
 
         if name in self.__Rfuncs__:
-            fun: Callable = wrap_rfunc(getattr(self.__base_lib__, name))
+            fun: Callable = wrap_rfunc(getattr(self.__base_lib__, name), name=name)
             self.__attach__(name=name, attr=fun)
             capture.reset_r_output()
             return getattr(self, name)
