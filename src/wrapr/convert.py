@@ -139,11 +139,11 @@ def convert_s4(x: ro.methods.RS4) -> Any:
 def convert_py2R(x: Any) -> Any:
     match x:
         case scipy.sparse.coo_array() | scipy.sparse.coo_matrix():
-            y =  convert_pysparsematrix(x)
+            y = convert_pysparsematrix(x)
         case _:
             y = x
     return y
-       
+
 
 def convert_pysparsematrix(x: scipy.sparse.coo_array | scipy.sparse.coo_matrix):
     try:
@@ -156,28 +156,29 @@ def convert_pysparsematrix(x: scipy.sparse.coo_array | scipy.sparse.coo_matrix):
         return x
 
     return y
-    
+
 
 def clean_args(args: List[Any], kwargs: Dict[str, Any]) -> None:
     for i, x in enumerate(args):
-        args[i] = convert_py2R(x) 
+        args[i] = convert_py2R(x)
     for k, v in kwargs.items():
         kwargs[k] = convert_py2R(v)
 
 
-# r-utils ----------------------------------------------------------------------
-def wrap_rfunc(func: Callable | Any, name: str) -> Callable | Any: # should be a Callable, but may f-up
+# r-utils ---------------------------------------------------------------------
+def wrap_rfunc(func: Callable | Any, name: str | None) -> Callable | Any:
+    # should be a Callable, but may f-up (thus Any)
     if not callable(func):
         return None
-    
+
     def wrap(*args, **kwargs):
         args = list(args) if args is not None else args
         clean_args(args=args, kwargs=kwargs)
-        
+
         lazyfunc = lazy_wrap(args=args, kwargs=kwargs, func=func,
                              func_name=name)
         # rfunc = lazy_wrap(*clean_args, **clean_kwargs)
-        with (ro.default_converter + pandas2ri.converter + 
+        with (ro.default_converter + pandas2ri.converter +
               numpy2ri.converter).context():
             result: Any = lazyfunc(*args, **kwargs)
 
@@ -185,7 +186,7 @@ def wrap_rfunc(func: Callable | Any, name: str) -> Callable | Any: # should be a
 
     try:
         wrap.__doc__ = func.__doc__
-    except ro.HelpNotFoundError: 
+    except ro.HelpNotFoundError:
         pass
     return wrap
 

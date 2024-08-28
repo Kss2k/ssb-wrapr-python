@@ -67,17 +67,21 @@ class Renv:
             self.__attach__(name=name, attr=fun)
             return getattr(self, name)
 
-
-
-    # def __library__(self, name: str) -> None: # attach library to module
-    #     self.__Renvironments__[name] = try_load_namespace(name, verbose=True)
-    
     def __function__(self, name: str, expr: str) -> None:
         rfunc: Callable | Any = ro.r(expr, invisible=True,
                                      print_r_warnings=False)
-        pyfunc: Callable = wrap_rfunc(rfunc)
+        pyfunc: Callable = wrap_rfunc(rfunc, name=name)
 
         self.__attach__(name=name, attr=pyfunc)
+
+    def function(self, expr: str) -> Callable:
+        rfunc: Callable | Any = ro.r(expr, invisible=True,
+                                     print_r_warnings=False)
+        pyfunc: Callable = wrap_rfunc(rfunc, name=None)
+        if not callable(pyfunc):
+            raise ValueError("R object is not a function")
+        return pyfunc
+
 
 
 def fetch_data(dataset: str, module: rpkg.Package) -> pd.DataFrame | None:

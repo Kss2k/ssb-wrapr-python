@@ -34,6 +34,8 @@ df = dplyr.mutate(iris, Sepal = wr.lazily("round(Sepal.Length * 2, 0)"))
         - S4 CLASSES ARE TRICKY!
     3. Better conversion handling for input!
         - S4 CLASSES ARE TRICKY
+        - Look at the Matrix library
+            - rpy2-Matrix on GitHub (abandoned repo, but might be helpful)
     4. Refactor modules, into seperate files 
         - Convert shoudld be split into three (maybe four) sub-modules/files
             1. rutils
@@ -41,6 +43,8 @@ df = dplyr.mutate(iris, Sepal = wr.lazily("round(Sepal.Length * 2, 0)"))
             3. convert_out
            (4.) py->r->py wrapping function factory
                 - Maybe remove `with (rpy.convert).context()`
+        - Look at the Matrix library
+            - rpy2-Matrix on GitHub (abandoned repo, but might be helpful)
     5. Better warning handling (this will likely be tricky)
         - Sometimes we will get datatypes which are incompatible, 
             e.g., warning accompanied by 
