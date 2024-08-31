@@ -97,7 +97,10 @@ def fetch_data(dataset: str, module: rpkg.Package) -> pd.DataFrame | None:
 def get_assets(env_name: str, module: rpkg.Package) -> Tuple[Set[str], Set[str]]:
     rcode: str = f"library({env_name}); ls(\"package:{env_name}\")"
     # rcode: str = f"ls(\"package:{env_name}\")"
-    rattrs: Set[str] = set(ro.r(rcode, invisible=True, print_r_warnings=False))
+    rattrs: Set[str] = {x.replace(".", "_") for x in 
+                        set(ro.r(rcode, invisible=True, 
+                                 print_r_warnings=False))}
+
     pyattrs: Set[str] = set(dir(module))
     # return: funcs, other-assets
     return (rattrs & pyattrs, rattrs - pyattrs)

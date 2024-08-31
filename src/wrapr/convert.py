@@ -14,6 +14,7 @@ from rpy2.robjects import pandas2ri, numpy2ri
 from .nputils import np_collapse
 from .lazy_rexpr import lazily, lazy_wrap
 from .rutils import rcall
+from .convert_py2r import clean_args
 
 
 def convertR2py(x: Any) -> Any:
@@ -135,34 +136,6 @@ def convert_s4(x: ro.methods.RS4) -> Any:
             return generic_conversion(x)
 
 
-# functions for converting from py 2 R -----------------------------------------
-def convert_py2R(x: Any) -> Any:
-    match x:
-        case scipy.sparse.coo_array() | scipy.sparse.coo_matrix():
-            y = convert_pysparsematrix(x)
-        case _:
-            y = x
-    return y
-
-
-def convert_pysparsematrix(x: scipy.sparse.coo_array | scipy.sparse.coo_matrix):
-    try:
-        sparseMatrix: Callable = rcall("Matrix::sparseMatrix")
-        y: Any = sparseMatrix(i=ro.IntVector(x.row + 1),
-                              j=ro.IntVector(x.col + 1),
-                              x=ro.FloatVector(x.data),
-                              dims=ro.IntVector(x.shape))
-    except:
-        return x
-
-    return y
-
-
-def clean_args(args: List[Any], kwargs: Dict[str, Any]) -> None:
-    for i, x in enumerate(args):
-        args[i] = convert_py2R(x)
-    for k, v in kwargs.items():
-        kwargs[k] = convert_py2R(v)
 
 
 # r-utils ---------------------------------------------------------------------
