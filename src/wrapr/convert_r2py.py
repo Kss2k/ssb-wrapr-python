@@ -9,23 +9,24 @@ import rpy2.rlike.container as rcnt
 from numpy.typing import NDArray
 from typing import Any, Callable, Dict, List, OrderedDict, Set, Tuple
 from copy import Error
-from rpy2.robjects import pandas2ri, numpy2ri
+from rpy2.robjects import pandas2ri, numpy2ri, rpy2
 
 from .nputils import np_collapse
 from .lazy_rexpr import lazily, lazy_wrap
 from .rutils import rcall
-from .convert_py2r import clean_args
 
 
-def convertR2py(x: Any) -> Any:
+def convert_r2py(x: Any) -> Any:
     match x:
         case str() | int() | bool() | float():
             return x
+        case rpy2.rinterface_lib.sexp.NULLType():
+            return None
         case ro.methods.RS4():
             return convert_s4(x)
         case vc.DataFrame():
             return convert_pandas(x)
-        case vc.Vector() | vc.Matrix() | vc.Array():
+        case vc.Vector() | vc.Matrix() | vc.Array() if not is_rlist(x):
             return convert_numpy(x)
         case list():
             return convert_list(x)
@@ -41,34 +42,54 @@ def convertR2py(x: Any) -> Any:
             if not is_valid_numpy(x):
                 return attempt_pandas_conversion(x)
             return filter_numpy(x)
+        case vc.ListSexpVector() | vc.ListVector():
+            return convert_rlist2py(x)
         case _:
             return generic_conversion(x)
         
 
 def convert_list(X: List | Tuple) -> Any:
-    out = [convertR2py(x) for x in X]
+    out = [convert_r2py(x) for x in X]
     if isinstance(X, tuple):
         out = tuple(out)
     return out
-        
-                
+       
+
+def convert_rlist2py(X: vc.ListVector | vc.ListSexpVector) -> Any:
+    names = convert_numpy(X.names)
+    if names is not None and len(names):
+        return convert_dict({n: x for n, x in zip(names, X)})
+    else:
+        return convert_list([x for x in X])
+
+
+def is_rlist(X: Any) -> bool:
+    match X:
+        case vc.ListVector() | vc.ListSexpVector():
+            return True
+        case _:
+            return False
+
+
 def convert_dict(X: Dict | OrderedDict,
                  is_RDict: bool = False) -> Any:
     try:
         # this needs to be improved considering named vectors
         if is_RDict and np.all(np.array(X.keys()) == None):
             Y = list(zip(*X.items()))[1]
-            X = convertR2py(Y)
+            X = convert_r2py(Y)
         elif is_RDict:
             X = dict(X)
 
         for key in X:
-            X[key] = convertR2py(X[key])
+            X[key] = convert_r2py(X[key])
     finally:
         return X
 
 
-def convert_numpy(x: vc.Vector | NDArray) -> NDArray:
+def convert_numpy(x: vc.Vector | NDArray) -> NDArray | None:
+    if isinstance(x, rpy2.rinterface_lib.sexp.NULLType):
+        return None
     match x: # this should be expanded upon
         case vc.BoolVector() | vc.BoolArray() | vc.BoolMatrix():
             dtype = "bool"
@@ -76,6 +97,8 @@ def convert_numpy(x: vc.Vector | NDArray) -> NDArray:
             dtype = "float"
         case vc.IntVector() | vc.IntArray() | vc.IntMatrix():
             dtype = "int"
+        case vc.StrArray() | vc.StrVector() | vc.StrMatrix():
+            dtype = "U"
         case _:
             dtype = None
 
@@ -100,6 +123,10 @@ def is_valid_numpy(x: NDArray) -> bool:
 
 
 def convert_pandas(df: vc.DataFrame) -> pd.DataFrame:
+    colnames = df.names
+    df_dict = {c: convert_numpy(x) for c, x in zip(colnames, list(df))}
+    return pd.DataFrame(df_dict) 
+
     with (ro.default_converter + pandas2ri.converter).context():
         pd_df = ro.conversion.get_conversion().rpy2py(df)
     return pd_df
@@ -138,47 +165,3 @@ def convert_s4(x: ro.methods.RS4) -> Any:
 
 
 
-# r-utils ---------------------------------------------------------------------
-def wrap_rfunc(func: Callable | Any, name: str | None) -> Callable | Any:
-    # should be a Callable, but may f-up (thus Any)
-    if not callable(func):
-        return None
-
-    def wrap(*args, **kwargs):
-        args = list(args) if args is not None else args
-        clean_args(args=args, kwargs=kwargs)
-
-        lazyfunc = lazy_wrap(args=args, kwargs=kwargs, func=func,
-                             func_name=name)
-        # rfunc = lazy_wrap(*clean_args, **clean_kwargs)
-        with (ro.default_converter + pandas2ri.converter +
-              numpy2ri.converter).context():
-            result: Any = lazyfunc(*args, **kwargs)
-
-        return convertR2py(result)
-
-    try:
-        wrap.__doc__ = func.__doc__
-    except ro.HelpNotFoundError:
-        pass
-    return wrap
-
-
-def rfunc(name: str) -> Callable | Any:
-    # Function for getting r-function from global environment
-    # BEWARE: THIS FUNCTION WILL TRY TO CONVERT ARGS GOING BOTH IN AND OUT!
-    # This function must not be used in Rpy-in functions
-    return wrap_rfunc(rcall(name), name=name)
-
-
-def get_rclass(x: Any) -> NDArray[np.unicode_] | None:
-    try:
-        f: Callable | Any = rfunc("class")
-        return np.asarray(f(x), dtype = "U")
-    except:
-        return None
-
-
-def as_matrix(x: Any, str = None) -> NDArray | Any:
-    f: Callable | Any = rfunc("as.matrix")
-    return f(x)

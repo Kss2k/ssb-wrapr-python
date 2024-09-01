@@ -14,8 +14,8 @@ from rpy2.robjects import pandas2ri, numpy2ri
 
 from .load_namespace import load_base_envs, try_load_namespace
 from .utils import ROutputCapture, pinfo
-from .convert import rfunc, wrap_rfunc # wrap_rfunc should perhaps be its own module
-
+from .function_wrapper import rfunc, wrap_rfunc # wrap_rfunc should perhaps be its own module
+from .rutils import rcall
 
 class Renv:
     def __init__(self, env_name):
@@ -70,6 +70,8 @@ class Renv:
     def __function__(self, name: str, expr: str) -> None:
         rfunc: Callable | Any = ro.r(expr, invisible=True,
                                      print_r_warnings=False)
+        # also attach to global namespace
+        rcall(f"{name} <- {expr}")
         pyfunc: Callable = wrap_rfunc(rfunc, name=name)
 
         self.__attach__(name=name, attr=pyfunc)
@@ -81,7 +83,16 @@ class Renv:
         if not callable(pyfunc):
             raise ValueError("R object is not a function")
         return pyfunc
+    
+    # def attributes(self, py_object: Any) -> Any:
+    #     return py_object.__Rattributes__
 
+    # def attr(self, py_object: Any, key: str) -> Any:
+    #     attributes = self.attributes(py_object)
+    #     try:
+    #         return attributes[key]
+    #     except TypeError:
+    #         return attributes
 
 
 def fetch_data(dataset: str, module: rpkg.Package) -> pd.DataFrame | None:
