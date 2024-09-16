@@ -7,7 +7,7 @@ from .convert_py2r import convert_py2r
 from .convert_r2py import convert_r2py
 from .rutils import rcall
 from .lazy_rexpr import lazy_wrap
-
+from .robject import Robject
 
 # def robjectwrap(py_object: Any, r_object: Any = None) -> Any:
 #     if py_object is None:
